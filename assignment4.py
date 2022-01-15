@@ -49,36 +49,36 @@ class Assignment4A:
         mm = torch.matmul(torch.from_numpy(matrixT), torch.from_numpy(matrix)).numpy()
         mm = [list(i) for i in mm]
 
-        def give_identity_mat(N): #Gives the identity matrix of NxN size.
+        def identity_matrix(N): #Gives the identity matrix of NxN size.
             identity = [[0 for i in range(N)] for i in range(N)]
             for i in range(0, N):
                 identity[i][i] = 1
             return identity
 
-        def rowsub(matrix, row1, row2, n):# subtract row1 from row2
+        def row_subraction(matrix, row1, row2, n):# subtract row1 from row2
             for i in range(len(matrix[row2])):
                 matrix[row2][i] -= n * matrix[row1][i]
 
-        def divide(matrix, row, n): #Row division by n
+        def row_division(matrix, row, n): #Row division by n
             for i in range(len(matrix[row])):
                 matrix[row][i] /= n
 
-        def inverse(matrix1):
+        def inverse(matrix):
             #Builds an inverse matrix, using Gaussian Elimination.
-            rows = len(matrix1)
-            invMatrix = give_identity_mat(rows)
+            rows = len(matrix)
+            inv_matrix = identity_matrix(rows)
             for i in range(rows):
-                if matrix1[i][i] != 1:
-                    factor = matrix1[i][i]
-                    divide(matrix1, i, factor)
-                    divide(invMatrix, i, factor)
+                if matrix[i][i] != 1:
+                    factor = matrix[i][i]
+                    row_division(matrix, i, factor)
+                    row_division(inv_matrix, i, factor)
                 for j in range(rows):
                     if i != j:
-                        if matrix1[j][i] != 0:
-                            factor = matrix1[j][i]
-                            rowsub(matrix1, i, j, factor)
-                            rowsub(invMatrix, i, j, factor)
-            return invMatrix
+                        if matrix[j][i] != 0:
+                            factor = matrix[j][i]
+                            row_subraction(matrix, i, j, factor)
+                            row_subraction(inv_matrix, i, j, factor)
+            return inv_matrix
 
         inverted = np.array(inverse(mm))
         y_dottranspose = torch.matmul(torch.from_numpy(matrixT), torch.from_numpy(ys))
