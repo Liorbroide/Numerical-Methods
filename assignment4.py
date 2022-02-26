@@ -29,13 +29,13 @@ class Assignment4A:
         pass
 
     def fit(self, f: callable, a: float, b: float, d:int, maxtime: float) -> callable:
-        xs = np.linspace(a, b, int(maxtime*100))
+        xs = np.linspace(a, b, int(d)*40)
         ys = []
         for i in xs:
             y = 0
-            for j in range(200): #Considering the noise is normal, I want to average the Y results
+            for j in range(100): #Considering the noise is normal, I want to average the Y results
                 y += f(i)        # of each x value.
-            ys.append(y/200)
+            ys.append(y/100)
         ys = np.array(ys)
         matrix = []
         for i in xs:
@@ -49,19 +49,19 @@ class Assignment4A:
         mm = torch.matmul(torch.from_numpy(matrixT), torch.from_numpy(matrix)).numpy()
         mm = [list(i) for i in mm]
 
-        def identity_matrix(N): #Gives the identity matrix of NxN size.
-            identity = [[0 for i in range(N)] for i in range(N)]
-            for i in range(0, N):
+        def identity_matrix(n): #Gives the identity matrix of NxN size.
+            identity = [[0 for i in range(n)] for i in range(n)]
+            for i in range(0, n):
                 identity[i][i] = 1
             return identity
 
-        def row_subraction(matrix, row1, row2, n):# subtract row1 from row2
+        def row_subraction(matrix, row1, row2, k):# subtract row1 from row2
             for i in range(len(matrix[row2])):
-                matrix[row2][i] -= n * matrix[row1][i]
+                matrix[row2][i] -= k * matrix[row1][i]
 
-        def row_division(matrix, row, n): #Row division by n
+        def row_division(matrix, row, k): #Row division by n
             for i in range(len(matrix[row])):
-                matrix[row][i] /= n
+                matrix[row][i] = matrix[row][i]/ k
 
         def inverse(matrix):
             #Builds an inverse matrix, using Gaussian Elimination.
@@ -69,15 +69,15 @@ class Assignment4A:
             inv_matrix = identity_matrix(rows)
             for i in range(rows):
                 if matrix[i][i] != 1:
-                    factor = matrix[i][i]
-                    row_division(matrix, i, factor)
-                    row_division(inv_matrix, i, factor)
+                    k = matrix[i][i]
+                    row_division(matrix, i, k)
+                    row_division(inv_matrix, i, k)
                 for j in range(rows):
                     if i != j:
                         if matrix[j][i] != 0:
-                            factor = matrix[j][i]
-                            row_subraction(matrix, i, j, factor)
-                            row_subraction(inv_matrix, i, j, factor)
+                            k = matrix[j][i]
+                            row_subraction(matrix, i, j, k)
+                            row_subraction(inv_matrix, i, j, k)
             return inv_matrix
 
         inverted = np.array(inverse(mm))
@@ -117,6 +117,14 @@ class TestAssignment4(unittest.TestCase):
         T = time.time() - T
         self.assertLessEqual(T, 5)
 
+    def test_delay(self):
+        f = DELAYED(7)(NOISY(0.01)(poly(1, 1, 1)))
+
+        ass4 = Assignment4A()
+        T = time.time()
+        shape = ass4.fit(f=f, a=0, b=1, d=10, maxtime=5)
+        T = time.time() - T
+        self.assertGreaterEqual(T, 5)
 
 
     def test_err(self):
@@ -132,7 +140,7 @@ class TestAssignment4(unittest.TestCase):
             mse+= (f(x)-ff(x))**2
         mse = mse/1000
         print(mse)
-
+        
 
 
 
